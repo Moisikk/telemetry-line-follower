@@ -1,70 +1,158 @@
-# Getting Started with Create React App
+# Aplicație Telemetrie
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Această aplicație este dezvoltată pentru a colecta și afișa datele de la un senzor ESP32 în timp real. Este destinatată monitorizării performanțelor unui robot line follower, utilizând un ESP32 care comunică prin Wi-Fi cu această aplicație React.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## **Funcționalități**
 
-### `npm start`
+- **Colectarea datelor**: Preluarea valorilor senzorilor de la ESP32.
+- **Actualizare în timp real**: Datele sunt afișate continuu într-un grafic.
+- **Grafic interactiv**: Utilizează `react-chartjs-2` pentru vizualizarea valorilor senzorilor.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## **Cum să începi**
 
-### `npm test`
+### **1. Instalare**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Clonează acest repository:
+   ```bash
+   git clone https://github.com/Moisikk/telemetry-line-follower.git
+   cd telemetry-line-follower
+   ```
 
-### `npm run build`
+2. Instalează dependențele:
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### **2. Rulare**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Pentru a rula aplicația în modul de dezvoltare:
 
-### `npm run eject`
+1. Pornește serverul:
+   ```bash
+   npm start
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Deschide [http://localhost:3000](http://localhost:3000) în browser pentru a vizualiza aplicația.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Pagina se va reîncărca automat** când faci modificări în cod.
+- Poți vedea eventualele erori în consolă.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### **3. Configurare**
 
-## Learn More
+În fișierul `App.js`, înlocuiește `<ESP32_IP_ADDRESS>` cu adresa IP a dispozitivului tău ESP32:
+```javascript
+const response = await axios.get("http://<ESP32_IP_ADDRESS>/");
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## **Codul principal**
 
-### Code Splitting
+Aplicația utilizează **React**, **Axios** și **react-chartjs-2** pentru a colecta și afișa datele. Mai jos sunt principalele funcționalități:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### **Cod complet din App.js**
 
-### Analyzing the Bundle Size
+```javascript
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Line } from "react-chartjs-2";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+function App() {
+  const [sensorData, setSensorData] = useState([]);
+  const [error, setError] = useState(null);
 
-### Making a Progressive Web App
+  // Fetch sensor data from ESP32
+  const fetchSensorData = async () => {
+    try {
+      const response = await axios.get("http://<ESP32_IP_ADDRESS>/"); // Replace with ESP32 IP
+      setSensorData(response.data);
+    } catch (err) {
+      setError("ESP32 NU COMUNICA");
+    }
+  };
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+  const chartData = {
+    labels: Array.from({ length: sensorData.length }, (_, i) => `Sensor ${i + 1}`),
+    datasets: [
+      {
+        label: "Sensor Values",
+        data: sensorData,
+        borderColor: "rgba(75,192,192,1)",
+        borderWidth: 2,
+        fill: false,
+      },
+    ],
+  };
 
-### Advanced Configuration
+  // Fetch data every 1 second
+  useEffect(() => {
+    const interval = setInterval(fetchSensorData, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h1>Line Follower Telemetry</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <h2>Sensor Data</h2>
+      <div>
+        {sensorData.length > 0 ? (
+          <Line data={chartData} />
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
-### Deployment
+export default App;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## **Dependențe**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **React**: Framework-ul principal utilizat pentru dezvoltarea aplicației.
+- **Axios**: Pentru colectarea datelor de la ESP32 prin HTTP.
+- **Chart.js** și **react-chartjs-2**: Pentru afișarea datelor în grafice.
+
+Instalează toate dependențele cu:
+```bash
+npm install
+```
+
+---
+
+## **Contribuții**
+
+Contribuțiile sunt binevenite! Dacă dorești să adaugi funcționalități sau să îmbunătățești aplicația:
+
+1. Forkează repository-ul.
+2. Creează o nouă ramură (`git checkout -b feature/noua-funcționalitate`).
+3. Trimite un Pull Request.
+
+---
+
+## **Licență**
+
+Acest proiect este licențiat sub licența [MIT](https://opensource.org/licenses/MIT). Poți utiliza, modifica și distribui liber codul.
+
+---
+
+## **Capturi de ecran (Opțional)**
+
+Include capturi de ecran ale aplicației în funcțiune pentru a arăta cum arată interfața utilizatorului.
+
+---
+
+Pentru orice întrebare sau problemă, nu ezita să mă contactezi! 😊
+
