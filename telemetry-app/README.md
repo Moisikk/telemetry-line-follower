@@ -1,7 +1,6 @@
 # Aplicație Telemetrie
 
-Această aplicație este dezvoltată pentru a colecta și afișa datele de la un senzor ESP32 în timp real. Este destinatată monitorizării performanțelor unui robot line follower, utilizând un ESP32 care comunică prin Wi-Fi cu această aplicație React.
-
+Această aplicație este dezvoltată pentru a colecta și afișa datele de la un senzor ESP32 în timp real. Este destinatată monitorizării performanțelor unui robot line follower.
 ---
 
 ## **Funcționalități**
